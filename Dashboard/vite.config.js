@@ -11,6 +11,13 @@ export default defineConfig({
   server: {
     port: 3000,
     host: true,
-    open: true
+    open: true,
+    proxy: {
+      '/api': {
+        target: 'https://zkp-gateway.vercel.app',
+        changeOrigin: true,
+        secure: true
+      }
+    }
   }
 })

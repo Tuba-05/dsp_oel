@@ -20,16 +20,26 @@ DSP OEL/
 │   └── api/
 │       └── index.py                    # Flask ZKP Gateway (/api/register, /api/authenticate, /api/data, /api/get-data)
 └── Dashboard/                          # React + Vite Frontend Monitor
+    ├── .env.example                    # Environment variable template
     ├── index.html                      # Entry HTML
     ├── package.json                    # Frontend dependencies & scripts
-    ├── vite.config.js                  # Port 3000 & /api proxy to http://127.0.0.1:5000
+    ├── vercel.json                     # Vercel rewrite to https://zkp-gateway.vercel.app
+    ├── vite.config.js                  # Port 3000 & /api proxy to https://zkp-gateway.vercel.app
     └── src/
         ├── main.jsx                    # React root mount
         ├── index.css                   # Global dark theme & responsive layout
         ├── App.css                     # Glassmorphic cards, neon glows, & animations
-        ├── App.jsx                     # Main PPG Health & Vital Monitor UI
-        └── hooks/
-            └── useEsp32Telemetry.js    # Live telemetry hook & DSP engine (FFT, SQI, HRV, Rhythm)
+        ├── App.jsx                     # Top-level Dashboard layout
+        ├── components/                 # Modular UI Components
+        │   ├── HeaderBar.jsx           # Title, connection badge, Demo toggle, Uptime
+        │   ├── GatewayConfigModal.jsx  # ZKP Gateway / USB Serial / WebSocket settings
+        │   ├── VitalsRow.jsx           # Heart Rate (BPM) & SpO2 (%) cards
+        │   ├── WaveformMonitor.jsx     # High-DPI PPG Canvas & playback controls
+        │   └── DspMetricsRow.jsx       # Stress (HRV) gauge, SQI bars, Rhythm, FFT Spectrum
+        ├── hooks/
+        │   └── useEsp32Telemetry.js    # Live telemetry state & polling/serial connection hook
+        └── utils/
+            └── dspMath.js              # Pure DSP algorithms (PPG wave, DFT/FFT, payload parser)
 ```
 
 ---
@@ -77,7 +87,16 @@ cd Dashboard
 npm install
 npm run dev
 ```
-The frontend will open at `http://localhost:3000` and automatically proxy `/api/get-data` requests to `http://127.0.0.1:5000`.
+The frontend will open at `http://localhost:3000` and automatically proxy `/api/get-data` requests to `https://zkp-gateway.vercel.app`.
+
+---
+
+## Deploying `Dashboard/` on Vercel (Free)
+
+1. Push the repository to GitHub.
+2. Open [vercel.com/new](https://vercel.com/new) and import the `dsp_oel` repository.
+3. Set **Root Directory** to `Dashboard`.
+4. Click **Deploy** — [`Dashboard/vercel.json`](Dashboard/vercel.json) automatically rewrites `/api/*` requests to `https://zkp-gateway.vercel.app/api/*`.
 
 ---
 
