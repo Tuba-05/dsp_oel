@@ -1,5 +1,8 @@
 # Smart PPG Health & Vital Monitor (ESP32 ZKP Gateway)
 
+- **Live Frontend Dashboard**: [https://dsp-oel.vercel.app/](https://dsp-oel.vercel.app/)
+- **Live ZKP Gateway API**: [https://zkp-gateway.vercel.app/](https://zkp-gateway.vercel.app/)
+
 An end-to-end **Digital Signal Processing (DSP) Photoplethysmogram (PPG) & Vital Signs Monitoring System** combining:
 1. **`ZKP_Gateway/`**: ESP32 + MAX30102 + OLED embedded C firmware (`main.c`) and a Zero-Knowledge Proof (ZKP) Flask API backend (`api/index.py`).
 2. **`Dashboard/`**: Interactive React + Vite medical telemetry dashboard that fetches live readings from `ZKP_Gateway/api/index.py` (`/api/get-data`) or directly from the ESP32 over USB Serial / WebSocket, and computes real-time DSP analytics.
