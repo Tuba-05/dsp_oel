@@ -1,120 +1,8 @@
-# Smart PPG Health & Vital Monitor (ESP32 Gateway)
+# Smart PPG Health & Vital Monitor (ESP32 ZKP Gateway)
 
-A real-time **Digital Signal Processing (DSP) Photoplethysmogram (PPG) & Vital Signs Dashboard** built with React + Vite, designed to interface flexibly with an **ESP32 Gateway** (MAX30102 / MAX30100 / Pulse Sensor) via **WebSocket**, **HTTP REST Polling**, **USB Web Serial**, or **Live Simulation Mode**.
-
----
-
-## Features
-
-- **Heart Rate Monitor (`BPM`)**: Live BPM readout, animated heartbeat icon synchronized to the current heart rate, and ECG pulse indicator.
-- **Blood Oxygen (`SpO2 %`)**: Real-time oxygen saturation percentage with automatic `NORMAL` ($\ge 95\%$), `LOW` ($90\text{–}94\%$), and `CRITICAL` ($< 90\%$) status badges.
-- **High-DPI PPG Pulse Waveform (`<canvas>`)**:
-  - Automatically renders **raw ADC PPG samples** streamed from the ESP32 with dynamic min/max auto-scaling.
-  - Falls back to a physiologically accurate arterial PPG waveform (systolic peak, dicrotic notch, diastolic runoff) scaled to the live Heart Rate when only scalar vitals are sent.
-  - Interactive playback controls: **Play (`▶`)**, **Pause (`||`)**, **Speed (`1x` / `2x` / `0.5x`)**, **Time Window (`5s` / `10s` / `2s`)**, and **Fullscreen mode**.
-- **DSP Analytics Row**:
-  - **Stress Level (HRV)**: 4-segment semi-circular gauge with a dynamically rotating needle driven by `stress` / `hrv` ($0\text{–}100\%$).
-  - **Signal Quality (SQI)**: Live percentage and 5-stage glowing cyan signal bar indicator.
-  - **Rhythm Status**: Displays cardiac rhythm classification (e.g., `Normal Sinus`, `Tachycardia`, `Bradycardia`, `Arrhythmia`, `No Finger`).
-  - **FFT Spectrum**: 18-bin frequency-domain bar chart for PPG harmonic analysis.
-
----
-
-## Quick Start
-
-```bash
-# 1. Install dependencies
-npm install
-
-# 2. Start development server
-npm run dev
-
-# 3. Build for production
-npm run build
-```
-
----
-
-## Connecting Your ESP32
-
-Click the **`Connected` pill** or the **Gear icon (`⚙`)** in the top-right header of the dashboard to open the **ESP32 Gateway Telemetry Source** panel. You can switch between 4 modes at any time:
-
-1. **Demo / Simulated Stream**: Default mode matching the Figma reference values (`72 BPM`, `98% SpO2`, `94% SQI`, `Normal Sinus`). Includes a **Live Packet Injector** to test custom JSON/CSV payloads directly in the browser.
-2. **WebSocket (`ws://`)**: Connects to your ESP32 WebSocket server (default: `ws://192.168.4.1:81`) for low-latency streaming.
-3. **HTTP REST Polling (`http://`)**: Polls your ESP32 HTTP endpoint (default: `http://192.168.4.1/vitals`) at a configurable interval (`100ms`–`2000ms`).
-4. **USB Web Serial (`115200 baud`)**: Reads `Serial.println()` lines directly from your ESP32 over a USB cable in Chrome or Edge—no Wi-Fi setup required.
-
----
-
-## Flexible ESP32 Data Formats
-
-The parser in [`src/hooks/useEsp32Telemetry.js`](src/hooks/useEsp32Telemetry.js) automatically recognizes multiple payload formats and key aliases:
-
-### 1. JSON Format (Recommended for WebSocket / HTTP / Serial)
-You can send any subset of fields—only the fields you include will be updated:
-
-```json
-{
-  "hr": 72,
-  "spo2": 98,
-  "ppg": [2048, 2110, 2290, 2450, 2180, 2090, 2140, 2010],
-  "sqi": 94,
-  "stress": 32,
-  "rhythm": "Normal Sinus",
-  "fft": [14, 22, 30, 58, 96, 76, 46, 30, 22, 42, 34, 20, 18, 28, 14, 12, 10, 11],
-  "uptime": 9912
-}
-```
-
-**Supported JSON Key Aliases:**
-| Metric | Accepted Keys |
-| :--- | :--- |
-| **Heart Rate** | `hr`, `heartRate`, `bpm`, `heart_rate` |
-| **SpO2** | `spo2`, `SpO2`, `oxygen`, `saturation` |
-| **PPG Waveform** | `ppg`, `waveform`, `ir`, `raw`, `samples`, `adc` (single number or array) |
-| **Stress / HRV** | `stress`, `stressLevel`, `hrv`, `rmssd` (`0`–`100`) |
-| **Signal Quality** | `sqi`, `SQI`, `signalQuality`, `quality` (`0`–`100`) |
-| **Rhythm Status** | `rhythm`, `rhythmStatus`, `status` |
-| **FFT Spectrum** | `fft`, `fftSpectrum`, `spectrum`, `fft_bins` (array of numbers) |
-| **Uptime** | `uptime`, `uptimeSeconds`, `millis` |
-
-### 2. Key-Value Serial Format
-```text
-HR:72,SPO2:98,PPG:2145,SQI:94,STRESS:32
-```
-
-### 3. Plain CSV Serial Format (`hr,spo2,ppg,sqi,stress`)
-```text
-72,98,2145,94,32
-```
-
----
-
-## Example ESP32 Arduino Sketch (USB Serial + JSON)
-
-```cpp
-#include <Arduino.h>
-
-void setup() {
-  Serial.begin(115200);
-}
-
-void loop() {
-  int hr = 72;
-  int spo2 = 98;
-  int sqi = 94;
-  int stress = 32;
-  int rawPpg = analogRead(34); // Or MAX30102 particleSensor.getIR()
-
-  // Send JSON line over Serial (or WebSocket.broadcastTXT)
-  Serial.printf(
-    "{\"hr\":%d,\"spo2\":%d,\"ppg\":%d,\"sqi\":%d,\"stress\":%d,\"rhythm\":\"Normal Sinus\"}\n",
-    hr, spo2, rawPpg, sqi, stress
-  );
-
-  delay(40); // ~25 Hz update rate
-}
-```
+An end-to-end **Digital Signal Processing (DSP) Photoplethysmogram (PPG) & Vital Signs Monitoring System** combining:
+1. **`ZKP_Gateway/`**: ESP32 + MAX30102 + OLED embedded C firmware (`main.c`) and a Zero-Knowledge Proof (ZKP) Flask API backend (`api/index.py`).
+2. **`Dashboard/`**: Interactive React + Vite medical telemetry dashboard that fetches live readings from `ZKP_Gateway/api/index.py` (`/api/get-data`) or directly from the ESP32 over USB Serial / WebSocket, and computes real-time DSP analytics.
 
 ---
 
@@ -122,14 +10,88 @@ void loop() {
 
 ```text
 DSP OEL/
-├── index.html                      # Entry HTML & Inter font loader
-├── package.json                    # Dependencies & Vite scripts
-├── README.md                       # Documentation & ESP32 integration guide
-└── src/
-    ├── main.jsx                    # React root mount
-    ├── index.css                   # Global dark theme & layout reset
-    ├── App.css                     # Dashboard cards, neon glows, & responsive grid
-    ├── App.jsx                     # Main PPG Health & Vital Monitor UI
-    └── hooks/
-        └── useEsp32Telemetry.js    # Flexible ESP32 parser (WS / HTTP / Serial / Demo)
+├── .gitignore                          # Git ignore rules for Node, Python, C/ESP-IDF, and Vercel
+├── README.md                           # Project documentation & setup guide
+├── ZKP_Gateway/                        # Embedded Firmware & ZKP Cloud/Local Gateway
+│   ├── main.c                          # ESP-IDF C firmware (MAX30102 I2C, IIR DC filter, SpO2, OLED)
+│   ├── CMakeLists.txt                  # ESP-IDF component build config
+│   ├── requirements.txt                # Python dependencies (Flask, requests)
+│   ├── vercel.json                     # Vercel serverless deployment configuration
+│   └── api/
+│       └── index.py                    # Flask ZKP Gateway (/api/register, /api/authenticate, /api/data, /api/get-data)
+└── Dashboard/                          # React + Vite Frontend Monitor
+    ├── index.html                      # Entry HTML
+    ├── package.json                    # Frontend dependencies & scripts
+    ├── vite.config.js                  # Port 3000 & /api proxy to http://127.0.0.1:5000
+    └── src/
+        ├── main.jsx                    # React root mount
+        ├── index.css                   # Global dark theme & responsive layout
+        ├── App.css                     # Glassmorphic cards, neon glows, & animations
+        ├── App.jsx                     # Main PPG Health & Vital Monitor UI
+        └── hooks/
+            └── useEsp32Telemetry.js    # Live telemetry hook & DSP engine (FFT, SQI, HRV, Rhythm)
 ```
+
+---
+
+## How the System Works End-to-End
+
+1. **ESP32 Sensor & Firmware (`ZKP_Gateway/main.c`)**:
+   - Reads Red and IR LED signals from the **MAX30102** sensor over I2C (`400 Hz`).
+   - Applies a first-order IIR DC-removal filter:
+     $$y_{\text{DC}}[n] = 0.95\,y_{\text{DC}}[n-1] + 0.05\,x[n], \quad y_{\text{AC}}[n] = x[n] - y_{\text{DC}}[n]$$
+   - Detects systolic peaks to compute **Heart Rate (`BPM`)** and calculates **Blood Oxygen (`SpO2 %`)** using the Red/IR AC-to-DC ratio:
+     $$\text{SpO}_2 = 104.0 - 16.0 \times \frac{\text{AC}_{\text{Red}} / \text{DC}_{\text{Red}}}{\text{AC}_{\text{IR}} / \text{DC}_{\text{IR}}}$$
+2. **ZKP Gateway Backend (`ZKP_Gateway/api/index.py`)**:
+   - Authenticates the ESP32 node via Zero-Knowledge Proof endpoints (`/api/register`, `/api/challenge`, `/api/authenticate`).
+   - Receives verified health readings at `POST /api/data` (`device_id`, `token`, `hr`, `spo2`).
+   - Exposes live sensor state at `GET /api/get-data` with automatic 7-second idle timeout detection (`"Waiting for device..."`, `"Idle - Place Finger on Sensor"`, or `"Live Streaming Active & Secure"`).
+3. **React Frontend (`Dashboard/`)**:
+   - Polls `/api/get-data` from `index.py` (default) or connects directly via **USB Serial (`115200 baud`)** / **WebSocket**.
+   - Displays **real `hr` (`BPM`)** and **real `spo2` (`%`)** from `index.py` and calculates:
+     - **PPG Pulse Waveform**: High-DPI `<canvas>` arterial waveform synchronized to the live Heart Rate (or raw ADC samples).
+     - **Stress Level (HRV)**: Semi-circular gauge needle driven by autonomic heart rate state ($0\text{–}100\%$).
+     - **Signal Quality (SQI)**: Real-time signal quality percentage and 5-bar indicator.
+     - **Rhythm Status**: Cardiac rhythm classification (`Normal Sinus`, `Sinus Tachycardia`, `Sinus Bradycardia`, or `Place Finger on Sensor`).
+     - **FFT Spectrum**: 18-bin frequency spectrum centered at the fundamental cardiac frequency and second harmonic.
+
+---
+
+## Running the Project Locally
+
+### Step 1: Start the ZKP Gateway Backend (`index.py`)
+Open a terminal in `ZKP_Gateway/`:
+
+```bash
+cd ZKP_Gateway
+pip install -r requirements.txt
+python api/index.py
+```
+The Flask server will start on `http://127.0.0.1:5000`.
+
+### Step 2: Start the React Frontend (`Dashboard/`)
+Open a second terminal in `Dashboard/`:
+
+```bash
+cd Dashboard
+npm install
+npm run dev
+```
+The frontend will open at `http://localhost:3000` and automatically proxy `/api/get-data` requests to `http://127.0.0.1:5000`.
+
+---
+
+## Connection Modes & Demo Button
+
+- **Real Hardware / Gateway Mode (Default)**:
+  - Before the ESP32 sends data, the dashboard displays `Waiting for device...`, `-- BPM`, `--%`, and a flatline waveform.
+  - Once the ESP32 posts readings to `/api/data` (or streams over USB Serial), the status pill turns green (`Connected (<device_id>)`) and all cards display the live readings.
+- **One-Click Demo Mode (`▶ Show Demo`)**:
+  - Click **`▶ Show Demo`** in the top-right header anytime to preview the dashboard with simulated live telemetry (`72 BPM`, `98% SpO2`, `94% SQI`, `Normal Sinus`).
+  - Click **`● Demo Active (Exit)`** to return to real `index.py` / ESP32 data mode.
+- **Switching Telemetry Sources**:
+  - Click the top status pill or the **`⚙` Gear icon** to switch between:
+    1. **ZKP Gateway API (`index.py`)**: `/api/get-data` (local Flask or deployed Vercel URL).
+    2. **USB Serial Port (`COM`)**: Directly parses `main.c` serial logs (`BPM : 72 | SPO2: 98% | RAM: ... | UPTIME: 120 SEC`) or JSON/CSV over USB.
+    3. **Wi-Fi WebSocket (`ws://`)**: Direct WebSocket stream from ESP32.
+    4. **Figma Preview (Demo Mode)**.

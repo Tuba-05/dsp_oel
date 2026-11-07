@@ -319,12 +319,20 @@ export default function App() {
           </h1>
           <button
             type="button"
-            className={`status-pill ${connected ? '' : 'disconnected'}`}
+            className={`status-pill ${connected && heartRate > 0 ? '' : 'disconnected'}`}
             onClick={() => setShowGatewayPanel((prev) => !prev)}
-            title="Click to configure ESP32 connection (WebSocket, USB Serial, HTTP, or Demo)"
+            title="Click to configure ZKP Gateway / ESP32 connection"
           >
             <span className="status-dot" />
-            <span>{connected ? 'Connected' : 'Disconnected (Click to Connect ESP32)'}</span>
+            <span>
+              {connected
+                ? heartRate > 0
+                  ? telemetry.deviceId && telemetry.deviceId !== 'Not Connected'
+                    ? `Connected (${telemetry.deviceId})`
+                    : 'Connected'
+                  : telemetry.gatewayStatus || 'Idle - Place Finger on Sensor'
+                : telemetry.gatewayStatus || 'Waiting for device...'}
+            </span>
           </button>
         </div>
 
@@ -333,11 +341,11 @@ export default function App() {
             type="button"
             className={`demo-toggle-btn ${mode === 'demo' ? 'active' : ''}`}
             onClick={() =>
-              switchMode(mode === 'demo' ? 'websocket' : 'demo')
+              switchMode(mode === 'demo' ? 'http' : 'demo')
             }
             title={
               mode === 'demo'
-                ? 'Click to exit Demo Mode and return to Real ESP32 Mode'
+                ? 'Click to exit Demo Mode and return to Real ZKP Gateway (index.py) Mode'
                 : 'Click to show Demo / Dummy Data'
             }
           >
@@ -389,10 +397,10 @@ export default function App() {
           <div className="mode-tabs">
             <button
               type="button"
-              className={`mode-tab ${mode === 'websocket' ? 'active' : ''}`}
-              onClick={() => switchMode('websocket')}
+              className={`mode-tab ${mode === 'http' ? 'active' : ''}`}
+              onClick={() => switchMode('http')}
             >
-              Wi-Fi WebSocket (ws://)
+              ZKP Gateway API (index.py)
             </button>
             <button
               type="button"
@@ -403,10 +411,10 @@ export default function App() {
             </button>
             <button
               type="button"
-              className={`mode-tab ${mode === 'http' ? 'active' : ''}`}
-              onClick={() => switchMode('http')}
+              className={`mode-tab ${mode === 'websocket' ? 'active' : ''}`}
+              onClick={() => switchMode('websocket')}
             >
-              Wi-Fi HTTP Polling
+              Wi-Fi WebSocket (ws://)
             </button>
             <button
               type="button"
@@ -462,19 +470,19 @@ export default function App() {
                 className="gateway-input"
                 value={httpUrl}
                 onChange={(e) => setHttpUrl(e.target.value)}
-                placeholder="http://192.168.4.1/vitals"
+                placeholder="/api/get-data or https://your-vercel-app.vercel.app/api/get-data"
               />
               <input
                 type="number"
                 className="gateway-input"
                 style={{ maxWidth: '110px' }}
                 value={pollIntervalMs}
-                onChange={(e) => setPollIntervalMs(Number(e.target.value) || 200)}
-                min={80}
-                step={50}
+                onChange={(e) => setPollIntervalMs(Number(e.target.value) || 1000)}
+                min={200}
+                step={100}
                 title="Polling interval (ms)"
               />
-              <span className="uptime-text">ms poll interval</span>
+              <span className="uptime-text">ms poll interval (from index.py)</span>
             </div>
           )}
 
@@ -541,7 +549,9 @@ export default function App() {
 
           <div className="vital-card-body">
             <div className="hr-value">
-              {connected && heartRate !== null ? `${heartRate} BPM` : '-- BPM'}
+              {connected && heartRate !== null && heartRate > 0
+                ? `${heartRate} BPM`
+                : '-- BPM'}
             </div>
 
             {/* Mini ECG / Pulse trace on right side of Heart Rate card */}
@@ -578,16 +588,16 @@ export default function App() {
           <div className="vital-card-body">
             <div className="spo2-body-left">
               <div className="spo2-value">
-                {connected && spo2 !== null ? `${spo2}%` : '--%'}
+                {connected && spo2 !== null && spo2 > 0 ? `${spo2}%` : '--%'}
               </div>
               <div className="spo2-meta">
                 <span className={`spo2-badge-inline ${spo2BadgeClass}`}>
                   {connected ? spo2Status : 'WAITING'}
                 </span>
                 <span className="spo2-subtext">
-                  {connected && spo2 !== null
+                  {connected && spo2 !== null && spo2 > 0
                     ? `${spo2}% Saturation`
-                    : 'No ESP32 Data'}
+                    : telemetry.gatewayStatus || 'No ESP32 Data'}
                 </span>
               </div>
             </div>

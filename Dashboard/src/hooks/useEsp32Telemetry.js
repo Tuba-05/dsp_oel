@@ -291,17 +291,19 @@ export function useEsp32Telemetry() {
       }
 
       // If ESP32 didn't send SQI/Stress explicitly, derive realistic DSP estimates from live HR
-      if (parsed.sqi === undefined && next.sqi === 0 && next.heartRate > 0) {
-        next.sqi = 94
+      if (parsed.sqi === undefined && next.heartRate > 0) {
+        // Calculate SQI from real SpO2 & HR returned by index.py
+        const spo2Penalty = Math.max(0, (98 - (next.spo2 || 98)) * 2.5)
+        const hrPenalty = next.heartRate >= 50 && next.heartRate <= 135 ? 0 : 8
+        next.sqi = Math.round(
+          Math.max(60, Math.min(99, 96 - spo2Penalty - hrPenalty))
+        )
       }
-      if (
-        parsed.stressLevel === undefined &&
-        next.stressLevel === 0 &&
-        next.heartRate > 0
-      ) {
+      if (parsed.stressLevel === undefined && next.heartRate > 0) {
+        // Calculate Stress Level (HRV) from real HR returned by index.py
         next.stressLevel = Math.min(
           95,
-          Math.max(15, Math.round(((next.heartRate - 55) / 65) * 60 + 20))
+          Math.max(15, Math.round(((next.heartRate - 55) / 65) * 58 + 18))
         )
       }
 

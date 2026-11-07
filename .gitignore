@@ -1,5 +1,18 @@
-# Logs
-logs
+# ==========================================
+# 1. Node / React / Vite (Dashboard/)
+# ==========================================
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+dist-ssr/
+**/dist-ssr/
+.vite/
+**/.vite/
+*.local
+
+# Package Manager & Debug Logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -7,18 +20,69 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# ==========================================
+# 2. Python & FastAPI/Flask (ZKP_Gateway/api/)
+# ==========================================
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
 
-# Editor directories and files
+# ==========================================
+# 3. C / CMake / ESP32 / ESP-IDF (ZKP_Gateway/)
+# ==========================================
+build/
+**/build/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.o
+*.obj
+*.elf
+*.bin
+*.hex
+*.map
+*.out
+*.exe
+*.a
+*.lib
+sdkconfig.old
+.pio/
+.espressif/
+
+# ==========================================
+# 4. Deployment & Environment Variables
+# ==========================================
+.vercel/
+**/.vercel/
+.env
+.env.*
+!.env.example
+
+# ==========================================
+# 5. IDEs, Editors & OS Files
+# ==========================================
 .vscode/*
 !.vscode/extensions.json
-.idea
-.DS_Store
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+.DS_Store
+Thumbs.db
+Desktop.ini
