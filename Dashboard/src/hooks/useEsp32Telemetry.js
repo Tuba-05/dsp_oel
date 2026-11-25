@@ -157,7 +157,12 @@ export function useEsp32Telemetry() {
 
     const poll = async () => {
       try {
-        const res = await fetch(httpUrl, { signal: controller.signal })
+        const separator = httpUrl.includes('?') ? '&' : '?'
+        const bustUrl = `${httpUrl}${separator}_t=${Date.now()}`
+        const res = await fetch(bustUrl, {
+          signal: controller.signal,
+          cache: 'no-store'
+        })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const text = await res.text()
         if (!isCancelled) {
