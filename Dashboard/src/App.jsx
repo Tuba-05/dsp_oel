@@ -67,7 +67,6 @@ export default function App() {
         telemetry={telemetry}
         mode={mode}
         switchMode={switchMode}
-        showGatewayPanel={showGatewayPanel}
         setShowGatewayPanel={setShowGatewayPanel}
       />
 
